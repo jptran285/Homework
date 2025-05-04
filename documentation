@@ -1,0 +1,45 @@
+# Define the Drink class
+class Drink:
+    # Define the valid drink bases and flavors
+    VALID_BASES = ['tea', 'coffee', 'soda', 'water']
+    VALID_FLAVORS = ['lemon', 'mint', 'vanilla', 'cherry', 'peach', 'caramel', 'mango']
+
+    # Initialize a Drink with a base
+    def __init__(self, base):
+        # If the base is invalid, raise an error
+        if base not in Drink.VALID_BASES:
+            raise ValueError("Invalid base")
+        # Set the base and initialize the list of flavors
+        self._base = base
+        self._flavors = []
+
+    # Getter for the drink's base
+    def get_base(self):
+        return self._base
+
+    # Getter for the drink's list of flavors
+    def get_flavors(self):
+        return self._flavors
+
+    # Getter for the number of flavors added to the drink
+    def get_num_flavors(self):
+        return len(self._flavors)
+
+    # Add a flavor to the drink if it’s valid and not already added
+    def add_flavor(self, flavor):
+        # Check if the flavor is valid and not already in the drink
+        if flavor in Drink.VALID_FLAVORS and flavor not in self._flavors:
+            # Add the flavor to the list of flavors
+            self._flavors.append(flavor)
+
+    # Set multiple flavors for the drink
+    def set_flavors(self, flavors):
+        # Clear any existing flavors before adding new ones
+        self._flavors = []
+        for flavor in flavors:
+            # Add each flavor if it’s valid and not a duplicate
+            self.add_flavor(flavor)
+
+
+# Define the Order class that holds multiple drinks
+class Order
