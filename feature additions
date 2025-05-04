@@ -1,0 +1,232 @@
+from enum import Enum
+
+# Enum for drink sizes
+class Size(Enum):
+    SMALL = "Small"
+    MEDIUM = "Medium"
+    LARGE = "Large"
+    MEGA = "Mega"
+
+# Enum for flavors
+class Flavor(Enum):
+    LEMON = "lemon"
+    MINT = "mint"
+    VANILLA = "vanilla"
+    CHERRY = "cherry"
+    PEACH = "peach"
+    CARAMEL = "caramel"
+    MANGO = "mango"
+
+
+class Drink:
+    # Define price based on size
+    SIZE_COST = {
+        Size.SMALL: 1.50,
+        Size.MEDIUM: 1.75,
+        Size.LARGE: 2.05,
+        Size.MEGA: 2.15
+    }
+
+    # Flavor cost
+    FLAVOR_COST = 0.15
+
+    def __init__(self, base, size=Size.MEDIUM):
+        """
+        Initializes a drink with a base and size.
+        Arguments:
+        base -- The drink's base (e.g., tea, coffee, etc.)
+        size -- The size of the drink (default is medium)
+        """
+        # Initialize base, size, and flavors list
+        self._base = base  # Drink base (e.g., coffee, tea)
+        self._size = size  # Drink size (Small, Medium, Large, Mega)
+        self._flavors = []  # List to store flavors
+    
+    def get_base(self):
+        # Return the base of the drink
+        return self._base
+
+    def get_flavors(self):
+        # Return the list of flavors added to the drink
+        return self._flavors
+
+    def get_size(self):
+        # Return the size of the drink
+        return self._size
+
+    def set_size(self, size):
+        """
+        Set the size of the drink (case-insensitive).
+        """
+        # Convert the size to uppercase to make it case-insensitive and set it
+        size = Size[size.upper()]  # Convert string size to Size Enum
+        self._size = size
+    
+    def add_flavor(self, flavor):
+        """
+        Add a flavor to the drink (no duplicates).
+        """
+        # If flavor not in list, add it to the list of flavors
+        if flavor not in self._flavors:
+            self._flavors.append(flavor)
+
+    def get_num_flavors(self):
+        # Return the number of flavors added to the drink
+        return len(self._flavors)
+
+    def get_total(self):
+        """
+        Get the total cost of the drink, including flavors.
+        """
+        # Calculate base cost based on size
+        base_cost = Drink.SIZE_COST[self._size]
+        # Calculate cost of flavors (0.15 per flavor)
+        flavor_cost = len(self._flavors) * Drink.FLAVOR_COST
+        # Total cost is base cost + flavor cost
+        return base_cost + flavor_cost
+
+    def __repr__(self):
+        """
+        Custom method to print a drink with its description.
+        """
+        # Join all flavor names into a single string
+        flavors = ", ".join([flavor.value for flavor in self._flavors])
+        # Return a formatted description of the drink
+        return f"{self._base} with {flavors} - Size: {self._size.value}"
+
+
+class Order:
+    TAX_RATE = 0.0725  # Tax rate of 7.25%
+
+    def __init__(self):
+        # Initialize the order with an empty item list
+        self._items = []
+
+    def add_item(self, drink):
+        # Add the provided drink to the order's items list
+        if isinstance(drink, Drink):
+            self._items.append(drink)
+
+    def get_items(self):
+        # Return the list of items (drinks) in the order
+        return self._items
+
+    def get_total(self):
+        """
+        Get the total cost of the order before tax.
+        """
+        # Sum the total cost of all drinks in the order
+        total = sum(drink.get_total() for drink in self._items)
+        return total
+
+    def get_total_with_tax(self):
+        """
+        Get the total cost of the order after tax.
+        """
+        # Calculate subtotal (total cost of all drinks)
+        subtotal = self.get_total()
+        # Calculate tax based on the subtotal
+        tax = subtotal * Order.TAX_RATE
+        # Return the total after adding tax
+        return subtotal + tax
+
+    def get_receipt(self):
+        """
+        Generate a formatted receipt with base, total, and tax for each item.
+        """
+        # Initialize the receipt lines list
+        lines = []
+        total_cost = 0
+
+        # Loop through each drink in the order
+        for drink in self._items:
+            # Get the total cost for each drink
+            drink_total = drink.get_total()
+            total_cost += drink_total
+            # Add a line to the receipt for each drink
+            lines.append(f"{drink.get_base()} - {drink.get_size().value}: ${drink_total:.2f}")
+
+        # Calculate the tax for the total order
+        tax = total_cost * Order.TAX_RATE
+        # Calculate the total cost including tax
+        total_with_tax = total_cost + tax
+
+        # Add subtotal, tax, and total to the receipt
+        lines.append(f"Subtotal: ${total_cost:.2f}")
+        lines.append(f"Tax: ${tax:.2f}")
+        lines.append(f"Total: ${total_with_tax:.2f}")
+        
+        # Return the formatted receipt as a string
+        return "\n".join(lines)
+
+
+# Unit Test Classes
+import unittest
+
+class TestDrink(unittest.TestCase):
+    def setUp(self):
+        # Set up a sample drink object for testing
+        self.drink = Drink("coffee", Size.LARGE)
+    
+    def test_get_total(self):
+        # Add flavors and test if total is correct
+        self.drink.add_flavor(Flavor.CARAMEL)
+        self.drink.add_flavor(Flavor.VANILLA)
+        # Assert that the total matches the expected cost
+        self.assertEqual(self.drink.get_total(), 2.35)  # 2.05 base + 0.30 for flavors
+
+    def test_set_size(self):
+        # Set the size to "small" and check if it's updated
+        self.drink.set_size("small")
+        self.assertEqual(self.drink.get_size(), Size.SMALL)
+
+    def test_get_size(self):
+        # Test to get the size of the drink
+        self.assertEqual(self.drink.get_size(), Size.LARGE)
+
+    def test_add_flavor(self):
+        # Add a flavor and test if it was successfully added
+        self.drink.add_flavor(Flavor.MANGO)
+        self.assertIn(Flavor.MANGO, self.drink.get_flavors())
+
+    def test_repr(self):
+        # Test the custom string representation of the drink
+        self.assertEqual(repr(self.drink), "coffee with - Size: LARGE")  # No flavors yet
+
+
+class TestOrder(unittest.TestCase):
+    def setUp(self):
+        # Set up an order and drinks for testing
+        self.order = Order()
+        self.drink1 = Drink("coffee", Size.MEDIUM)
+        self.drink2 = Drink("tea", Size.SMALL)
+
+    def test_add_item(self):
+        # Add a drink to the order and test if it was added
+        self.order.add_item(self.drink1)
+        self.assertIn(self.drink1, self.order.get_items())
+
+    def test_get_total(self):
+        # Add drinks and test the total cost
+        self.order.add_item(self.drink1)
+        self.order.add_item(self.drink2)
+        self.assertAlmostEqual(self.order.get_total(), 3.25)  # 1.75 + 1.50
+
+    def test_get_receipt(self):
+        # Add drinks and test receipt generation
+        self.order.add_item(self.drink1)
+        self.order.add_item(self.drink2)
+        receipt = self.order.get_receipt()
+        self.assertIn("coffee - Medium", receipt)
+        self.assertIn("Subtotal", receipt)
+        self.assertIn("Tax", receipt)
+
+    def test_get_total_with_tax(self):
+        # Add drinks and test total with tax
+        self.order.add_item(self.drink1)
+        self.order.add_item(self.drink2)
+        self.assertAlmostEqual(self.order.get_total_with_tax(), 3.48, places=2)  # 3.25 + 7.25% tax
+
+
+if __name__ == "__main__":
+    unittest.main()
