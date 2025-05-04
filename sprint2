@@ -1,0 +1,139 @@
+import unittest
+
+# === DRINK CLASS ===
+class Drink:
+    VALID_BASES = ['tea', 'coffee', 'soda', 'water']
+    VALID_FLAVORS = ['lemon', 'mint', 'vanilla', 'cherry', 'peach', 'caramel', 'mango']
+
+    def __init__(self, base):
+        if base not in Drink.VALID_BASES:
+            raise ValueError("Invalid base")
+        self._base = base
+        self._flavors = []
+
+    def get_base(self):
+        return self._base
+
+    def get_flavors(self):
+        return self._flavors
+
+    def get_num_flavors(self):
+        return len(self._flavors)
+
+    def add_flavor(self, flavor):
+        if flavor in Drink.VALID_FLAVORS and flavor not in self._flavors:
+            self._flavors.append(flavor)
+
+    def set_flavors(self, flavors):
+        self._flavors = []
+        for flavor in flavors:
+            self.add_flavor(flavor)
+
+
+# === ORDER CLASS ===
+class Order:
+    def __init__(self):
+        self._items = []
+
+    def add_item(self, drink):
+        if isinstance(drink, Drink):
+            self._items.append(drink)
+
+    def remove_item(self, index):
+        if 0 <= index < len(self._items):
+            del self._items[index]
+
+    def get_items(self):
+        return self._items
+
+    def get_total(self):
+        # base price: $2.00, each flavor: $0.50
+        total = 0
+        for drink in self._items:
+            total += 2.00 + 0.50 * drink.get_num_flavors()
+        return total
+
+    def get_num_items(self):
+        return len(self._items)
+
+    def get_receipt(self):
+        lines = []
+        for i, drink in enumerate(self._items):
+            line = f"Item {i+1}: {drink.get_base()} with {', '.join(drink.get_flavors())}"
+            lines.append(line)
+        return "\n".join(lines)
+
+
+# === UNIT TESTS ===
+class TestDrink(unittest.TestCase):
+    def setUp(self):
+        self.drink = Drink("tea")
+
+    def test_get_flavors(self):
+        self.drink.add_flavor("mint")
+        self.assertEqual(self.drink.get_flavors(), ["mint"])
+
+    def test_get_base(self):
+        self.assertEqual(self.drink.get_base(), "tea")
+
+    def test_get_num_flavors(self):
+        self.drink.add_flavor("mint")
+        self.drink.add_flavor("lemon")
+        self.assertEqual(self.drink.get_num_flavors(), 2)
+
+    def test_set_flavors(self):
+        self.drink.set_flavors(["peach", "vanilla"])
+        self.assertEqual(self.drink.get_flavors(), ["peach", "vanilla"])
+
+    def test_add_flavor(self):
+        self.drink.add_flavor("cherry")
+        self.assertIn("cherry", self.drink.get_flavors())
+
+    def test_add_flavor_no_duplicates(self):
+        self.drink.add_flavor("lemon")
+        self.drink.add_flavor("lemon")
+        self.assertEqual(self.drink.get_flavors().count("lemon"), 1)
+
+
+class TestOrder(unittest.TestCase):
+    def setUp(self):
+        self.order = Order()
+        self.drink1 = Drink("coffee")
+        self.drink1.add_flavor("caramel")
+        self.drink2 = Drink("soda")
+        self.drink2.add_flavor("cherry")
+
+    def test_get_items(self):
+        self.order.add_item(self.drink1)
+        self.assertEqual(self.order.get_items(), [self.drink1])
+
+    def test_get_total(self):
+        self.order.add_item(self.drink1)
+        self.order.add_item(self.drink2)
+        total = self.order.get_total()
+        self.assertAlmostEqual(total, 5.0)
+
+    def test_get_num_items(self):
+        self.order.add_item(self.drink1)
+        self.order.add_item(self.drink2)
+        self.assertEqual(self.order.get_num_items(), 2)
+
+    def test_get_receipt(self):
+        self.order.add_item(self.drink1)
+        receipt = self.order.get_receipt()
+        self.assertIn("coffee", receipt)
+        self.assertIn("caramel", receipt)
+
+    def test_add_item(self):
+        self.order.add_item(self.drink1)
+        self.assertIn(self.drink1, self.order.get_items())
+
+    def test_remove_item(self):
+        self.order.add_item(self.drink1)
+        self.order.add_item(self.drink2)
+        self.order.remove_item(0)
+        self.assertEqual(self.order.get_items(), [self.drink2])
+
+
+if __name__ == "__main__":
+    unittest.main()
