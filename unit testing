@@ -1,0 +1,36 @@
+class Drink:
+    TOPPING_PRICES = {
+        "Cherry": 0.00,
+        "Whipped Cream": 0.00,
+        "Caramel Sauce": 0.50,
+        "Chocolate Sauce": 0.50,
+        "Nacho Cheese": 0.30,
+        "Chili": 0.60,
+        "Bacon Bits": 0.30,
+        "Ketchup": 0.00,
+        "Mustard": 0.00
+    }
+
+    def __init__(self, name, base_price):
+        self.name = name
+        self.base_price = base_price
+        self.toppings = []
+
+    def get_price(self):
+        return self.base_price + sum(self.TOPPING_PRICES.get(t, 0.0) for t in self.toppings)
+
+    def set_price(self, price):
+        self.base_price = price
+
+    def add_topping(self, topping):
+        if topping in self.TOPPING_PRICES:
+            self.toppings.append(topping)
+
+    def get_toppings(self):
+        return self.toppings
+
+    def get_topping_count(self):
+        return len(self.toppings)
+
+    def get_type(self):
+        return "Drink"
